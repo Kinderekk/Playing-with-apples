@@ -106,6 +106,8 @@ var player = {
 						
 						player.pkt++;
 						map.setApplePosition();
+						map.timer = map.maxTime;
+						this.timerCounts = 0;
 						
 					}
 					
@@ -121,6 +123,8 @@ var player = {
 						
 						player.pkt++;
 						map.setApplePosition();
+						map.timer = map.maxTime;
+						this.timerCounts = 0;
 							
 					}
 					
@@ -141,6 +145,8 @@ var player = {
 		keyPressed: {},
 		numberOfWalls: 10,
 		wallForApple: {},
+		maxTime: 5,
+		timerCounts: 0,
 		walls: [{
 				x: 50,
 				y: 470,
@@ -224,8 +230,14 @@ var player = {
 			this.imgApple.src = this.imageApple;
 			
 		},
+		
+		setStartTime: function() {
+			
+			this.timer = this.maxTime;
+			
+		},
 				
-		update: function(ctx) {
+		update: function(ctx, interval) {
 			
 			this.checkKeyPressed();
 			//this.setApplePosition();
@@ -236,6 +248,8 @@ var player = {
 			player.newPosition();
 			
 			player.checkApple();
+			
+			this.setTimer(interval);
 				
             player.checkJump();
 				
@@ -243,34 +257,71 @@ var player = {
 			
 		},
 		
-		draw: function(ctx) {
+		setTimer: function(interval) {
 			
-			this.clear(ctx);
-				
-            ctx.fillStyle="#000000";
-            //ctx.fillText(player.name, player.x, player.y);
+			this.timerCounts++;
 			
-			ctx.drawImage(this.img, player.x, player.y, 20, 20);
+			if(this.timerCounts == 30) {
+			
+				map.timer--;
+
+				if(map.timer == 0) {
+					
+					this.lose = true;
+					this.draw();
+					clearInterval(interval);
+					
+					
+				}
+				this.timerCounts = 0;
 				
-			for(var i=0; i<this.walls.length; i++) {
-				ctx.fillRect(this.walls[i].xDraw,this.walls[i].yDraw, this.walls[i].l, this.wallSize);
 			}
 			
+		},
+		
+		draw: function(ctx) {
 			
-			//PUNKTY
-			ctx.font = "30px Verdana";
-			ctx.fillText("Points: " + player.pkt, 10, 40);
+			if(this.lose == true) {
+				
+				ctx.fillStyle="#000000";
+				ctx.fillRect(0, 0, this.width, this.height+20);
+				ctx.fillStyle="#FFFFFF";
+				ctx.font = "30px Verdana";
+				ctx.fillText("GAME OVER", 150, 250);
+				ctx.fillText("YOUR POINTS: " + player.pkt, 120, 300);
+				
+			} else {
 			
-			ctx.drawImage(this.imgApple, this.wallForApple.xDraw, this.wallForApple.yDraw-8,10,10);
-			//tx.fillRect(player.x+2, player.y+19, 1, 1); // lewa stopa
-			//ctx.fillRect(player.x+6, player.y+19, 1, 1); // środek1
-			//ctx.fillRect(player.x+10, player.y+19, 1, 1); // środek1
-			//ctx.fillRect(player.x+14, player.y+19, 1, 1); // prawa stopa
-			//ctx.fillRect(player.x+8, player.y, 1, 1); // głowa
-			//ctx.fillRect(this.wallForApple.xDraw+4, this.wallForApple.yDraw-8, 1, 1); //czubek jabłka
-			//ctx.fillRect(this.wallForApple.xDraw+2, this.wallForApple.yDraw+1, 1, 1); //lewa jabłka
-			//ctx.fillRect(this.wallForApple.xDraw+8, this.wallForApple.yDraw+1, 1, 1); //lewa jabłka
+				this.clear(ctx);
+					
+				ctx.fillStyle="#000000";
+				//ctx.fillText(player.name, player.x, player.y);
 			
+				ctx.drawImage(this.img, player.x, player.y, 20, 20);
+				
+				for(var i=0; i<this.walls.length; i++) {
+					ctx.fillRect(this.walls[i].xDraw,this.walls[i].yDraw, this.walls[i].l, this.wallSize);
+				}
+			
+			
+				//PUNKTY
+				ctx.font = "30px Verdana";
+				ctx.fillText("Points: " + player.pkt, 10, 40);
+				ctx.fillText("Time: " + map.timer, 300, 40);
+			
+				//GAME OVER
+			
+				ctx.drawImage(this.imgApple, this.wallForApple.xDraw, this.wallForApple.yDraw-8,10,10);
+				//tx.fillRect(player.x+2, player.y+19, 1, 1); // lewa stopa
+				//ctx.fillRect(player.x+6, player.y+19, 1, 1); // środek1
+				//ctx.fillRect(player.x+10, player.y+19, 1, 1); // środek1
+				//ctx.fillRect(player.x+14, player.y+19, 1, 1); // prawa stopa
+				//ctx.fillRect(player.x+8, player.y, 1, 1); // głowa
+				//ctx.fillRect(this.wallForApple.xDraw+4, this.wallForApple.yDraw-8, 1, 1); //czubek jabłka
+				//ctx.fillRect(this.wallForApple.xDraw+2, this.wallForApple.yDraw+1, 1, 1); //lewa jabłka
+				//ctx.fillRect(this.wallForApple.xDraw+8, this.wallForApple.yDraw+1, 1, 1); //lewa jabłka
+			
+			}
 			
 		},
 		
@@ -354,8 +405,9 @@ var player = {
 			map.setStartImage();
 			map.setAppleImage();
 			map.setApplePosition();
+			map.setStartTime();
     
-            setInterval(function() { map.update(ctx) }, 25);
+            var interval = setInterval(function() { map.update(ctx, interval) }, 30);
 				    
             document.addEventListener("keydown", function(e) {
                 
