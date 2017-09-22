@@ -9,6 +9,7 @@ var player = {
         maxJump: 30,
 		maxSpeed: 3,
 		maxGravity: 3,
+		pkt: 0,
 		isOnWall: false,
 		nextStepX: function() {
 			return this.x + this.speed;
@@ -93,13 +94,48 @@ var player = {
 			}
 			//console.log(this.isOnWall);
     
-        }
+        },
+		
+		checkApple: function() {
+			
+			for(var i=map.wallForApple.xDraw+2; i<map.wallForApple.xDraw+6; i++) {
+				
+				if(player.y+19 == map.wallForApple.yDraw+1) {
+					
+					if(i == this.x+2 || i == this.x+6 || i == this.x+10 || i == this.x+14) {
+						
+						player.pkt++;
+						map.setApplePosition();
+						
+					}
+					
+				}
+				
+			}
+			
+			for(var i=map.wallForApple.yDraw-8; i<map.wallForApple.yDraw+2; i++) {
+				
+				if(this.x+2 == map.wallForApple.xDraw+4 || this.x+6 == map.wallForApple.xDraw+4 || this.x+10 == map.wallForApple.xDraw+4 || this.x+14 == map.wallForApple.xDraw+4) {
+						
+					if(i == player.y+19) {
+						
+						player.pkt++;
+						map.setApplePosition();
+							
+					}
+					
+				}
+				
+			}
+			
+		}
     
     }
     
     var map = {
 		
 		img: new Image(),
+		imgApple: new Image(),
         height: 480,
         width: 500,
 		keyPressed: {},
@@ -159,6 +195,12 @@ var player = {
 				xDraw: 60,
 				yDraw: 400,
 				l: 20
+			   },{
+				x: 260,
+				y: 420,
+				xDraw: 270,
+				yDraw: 440,
+				l: 15
 			   }],
 		wallSize: 2,
 		actualY: 0,
@@ -169,10 +211,17 @@ var player = {
 		imageRunLeft1: "IMAGErunLEFT1.png",
 		imageRunLeft2: "IMAGErunLEFT2.png",
 		imageStand: "IMAGEstand.png",
+		imageApple: "apple.png",
 		
 		setStartImage: function() {
 			
 			this.img.src = this.imageStand;
+			
+		},
+		
+		setAppleImage: function() {
+			
+			this.imgApple.src = this.imageApple;
 			
 		},
 				
@@ -185,6 +234,8 @@ var player = {
 			player.checkIfStand();
 				
 			player.newPosition();
+			
+			player.checkApple();
 				
             player.checkJump();
 				
@@ -204,8 +255,22 @@ var player = {
 			for(var i=0; i<this.walls.length; i++) {
 				ctx.fillRect(this.walls[i].xDraw,this.walls[i].yDraw, this.walls[i].l, this.wallSize);
 			}
-			console.log('Id: ' + this.wallForApple.wallNumber + ' x: ' + this.wallForApple.xDraw);
-			ctx.fillRect(this.wallForApple.xDraw, this.wallForApple.yDraw,2,2);
+			
+			
+			//PUNKTY
+			ctx.font = "30px Verdana";
+			ctx.fillText("Points: " + player.pkt, 10, 40);
+			
+			ctx.drawImage(this.imgApple, this.wallForApple.xDraw, this.wallForApple.yDraw-8,10,10);
+			//tx.fillRect(player.x+2, player.y+19, 1, 1); // lewa stopa
+			//ctx.fillRect(player.x+6, player.y+19, 1, 1); // środek1
+			//ctx.fillRect(player.x+10, player.y+19, 1, 1); // środek1
+			//ctx.fillRect(player.x+14, player.y+19, 1, 1); // prawa stopa
+			//ctx.fillRect(player.x+8, player.y, 1, 1); // głowa
+			//ctx.fillRect(this.wallForApple.xDraw+4, this.wallForApple.yDraw-8, 1, 1); //czubek jabłka
+			//ctx.fillRect(this.wallForApple.xDraw+2, this.wallForApple.yDraw+1, 1, 1); //lewa jabłka
+			//ctx.fillRect(this.wallForApple.xDraw+8, this.wallForApple.yDraw+1, 1, 1); //lewa jabłka
+			
 			
 		},
 		
@@ -273,7 +338,7 @@ var player = {
 		setApplePosition: function() {
 			
 			this.wallForApple.wallNumber = Math.round(Math.random()*(map.walls.length-1));
-			this.wallForApple.xDraw = (Math.round(Math.random()*map.walls[this.wallForApple.wallNumber].l)+map.walls[this.wallForApple.wallNumber].xDraw);
+			this.wallForApple.xDraw = (Math.round(Math.random()*map.walls[this.wallForApple.wallNumber].l)+map.walls[this.wallForApple.wallNumber].xDraw-3);
 			this.wallForApple.y = this.walls[this.wallForApple.wallNumber].y-2;
 			this.wallForApple.x = this.walls[this.wallForApple.wallNumber].x;
 			this.wallForApple.yDraw = this.walls[this.wallForApple.wallNumber].yDraw-2;
@@ -287,6 +352,7 @@ var player = {
             var ctx = document.getElementById('ctx').getContext('2d');
 			
 			map.setStartImage();
+			map.setAppleImage();
 			map.setApplePosition();
     
             setInterval(function() { map.update(ctx) }, 25);
