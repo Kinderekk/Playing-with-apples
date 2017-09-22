@@ -21,6 +21,78 @@ var player = {
             this.x += this.speed;
             this.y -= this.gravity;
             this.speed = 0;
+        },
+		
+		checkWalk: function() {
+			
+            nextStep = this.nextStepX();
+            if(nextStep <= -5) {
+                this.speed = 0;	//this.x = 480
+            } else if(nextStep >= 489) { 
+                this.speed = 0;	//this.x = 0
+            }    
+        },
+		
+		checkIfStand: function() {
+			
+			if(this.speed == 0 && this.gravity == 0) {
+			
+				map.countImagesTimeLeft = 0;
+				map.countImagesTimeRight = 0;
+				map.img.src = map.imageStand;
+			
+			}
+			
+		},
+    
+        checkJump: function() {
+			
+            if((this.y <= map.height - this.maxJump - map.actualY) || ((this.y < map.height) && (this.isOnWall == false) && (this.gravity != this.maxGravity))) {
+                this.gravity = -this.maxGravity;
+			} else if(this.y >= map.height) {
+				this.isOnWall = false;
+                this.jumping = false;
+				this.gravity = 0;
+				this.y = 480;
+            }
+			
+			if(this.gravity == -this.maxGravity || this.gravity == 0) {
+
+				for(var i=0; i<map.walls.length; i++) {
+
+					var tempI = i;
+				
+					for(j=map.walls[tempI].x-3; j<=map.walls[tempI].x + map.walls[tempI].l + 3; j++) { // -3 i +3 żeby wyglądało jakby stał na podescie nawet koncowka stopy
+					
+						//console.log(this.x + ' ' + this.y + ' // ' + j + ' ' + map.walls[i].y);
+						
+						for(var m=0; m<this.maxGravity; m++) {
+														
+							if(this.x == j && this.y == (map.walls[tempI].y+m)) {
+							
+								//console.log('wskoczyl');
+								this.isOnWall = true;
+								this.jumping = false;
+								this.gravity = 0;
+								this.y = map.walls[tempI].y;
+								m=this.maxGravity;
+								j=map.walls[i].x + map.walls[i].l + 3 + 1;
+								i=map.walls.length+1;
+								
+							} else {
+								
+								this.isOnWall = false;
+								
+							}
+							
+						}
+					
+					}
+				
+				}
+			}
+			//console.log(this.isOnWall);
+    
         }
     
     }
@@ -31,7 +103,63 @@ var player = {
         height: 480,
         width: 500,
 		keyPressed: {},
-		walls: [],
+		numberOfWalls: 10,
+		wallForApple: {},
+		walls: [{
+				x: 50,
+				y: 470,
+				xDraw: 60,
+				yDraw: 490,
+				l: 35
+			   },{
+				x: 200,
+				y: 460,
+				xDraw: 210,
+				yDraw: 480,
+				l: 55
+			   },{
+				x: 70,
+				y: 435,
+				xDraw: 80,
+				yDraw: 455,
+				l: 150
+			   },{
+				x: 100,
+				y: 455,
+				xDraw: 110,
+				yDraw: 475,
+				l: 40
+			   },{
+				x: -10,
+				y: 420,
+				xDraw: 0,
+				yDraw: 440,
+				l: 80
+			   },{
+				x: 300,
+				y: 400,
+				xDraw: 310,
+				yDraw: 420,
+				l: 100
+			   },{
+				x: -10,
+				y: 380,
+				xDraw: 0,
+				yDraw: 400,
+				l: 20
+			   },{
+				x: 100,
+				y: 400,
+				xDraw: 110,
+				yDraw: 420,
+				l: 50
+			   },{
+				x: 50,
+				y: 380,
+				xDraw: 60,
+				yDraw: 400,
+				l: 20
+			   }],
 		wallSize: 2,
 		actualY: 0,
 		countImagesTimeRight: 0,
@@ -51,13 +179,14 @@ var player = {
 		update: function(ctx) {
 			
 			this.checkKeyPressed();
-			this.checkWalk();
+			//this.setApplePosition();
+			player.checkWalk();
 			
-			this.checkIfStand();
+			player.checkIfStand();
 				
 			player.newPosition();
 				
-            this.checkJump();
+            player.checkJump();
 				
 			this.draw(ctx);
 			
@@ -75,6 +204,8 @@ var player = {
 			for(var i=0; i<this.walls.length; i++) {
 				ctx.fillRect(this.walls[i].xDraw,this.walls[i].yDraw, this.walls[i].l, this.wallSize);
 			}
+			console.log('Id: ' + this.wallForApple.wallNumber + ' x: ' + this.wallForApple.xDraw);
+			ctx.fillRect(this.wallForApple.xDraw, this.wallForApple.yDraw,2,2);
 			
 		},
 		
@@ -85,79 +216,7 @@ var player = {
 			
 		},
 				
-        checkWalk: function() {
-			
-            nextStep = player.nextStepX();
-            if(nextStep <= -5) {
-                player.speed = 0;	//player.x = 480
-            } else if(nextStep >= 489) { 
-                player.speed = 0;	//player.x = 0
-            }    
-        },
-		
-		checkIfStand: function() {
-			
-			if(player.speed == 0 && player.gravity == 0) {
-			
-				map.countImagesTimeLeft = 0;
-				map.countImagesTimeRight = 0;
-				this.img.src = this.imageStand;
-			
-			}
-			
-		},
-    
-        checkJump: function() {
-			
-            if((player.y <= this.height - player.maxJump - map.actualY) || ((player.y < this.height) && (player.isOnWall == false) && (player.gravity != player.maxGravity))) {
-                player.gravity = -player.maxGravity;
-			} else if(player.y >= this.height) {
-				player.isOnWall = false;
-                player.jumping = false;
-                player.gravity = 0;
-				player.y = 480;
-            }
-			
-			if(player.gravity == -player.maxGravity || player.gravity == 0) {
-
-				for(var i=0; i<map.walls.length; i++) {
-
-					var tempI = i;
-				
-					for(j=map.walls[tempI].x-3; j<=map.walls[tempI].x + map.walls[tempI].l + 3; j++) { // -3 i +3 żeby wyglądało jakby stał na podescie nawet koncowka stopy
-					
-						//console.log(player.x + ' ' + player.y + ' // ' + j + ' ' + map.walls[i].y);
-						
-						for(var m=0; m<player.maxGravity; m++) {
-														
-							if(player.x == j && player.y == (map.walls[tempI].y+m)) {
-							
-								//console.log('wskoczyl');
-								player.isOnWall = true;
-								player.jumping = false;
-								player.gravity = 0;
-								player.y = map.walls[tempI].y;
-								m=player.maxGravity;
-								j=map.walls[i].x + map.walls[i].l + 3 + 1;
-								i=map.walls.length+1;
-								
-							} else {
-								
-								player.isOnWall = false;
-								
-							}
-							
-						}
-					
-					}
-				
-				}
-			}
-			//console.log(player.isOnWall);
-    
-        },
-		
-		checkKeyPressed: function() {
+        checkKeyPressed: function() {
 			//console.log(player.isOnWall);
 			if(this.img.src) {
 				this.fileName = this.img.src.replace(/^.*[\\\/]/, '')
@@ -210,11 +269,15 @@ var player = {
 			
 			//console.log("up: " + this.keyPressed[38] + " down: "+ this.keyPressed[40] + " onWall: " + player.isOnWall);
 		},
-
-		generateWalls: function() {
-
+		
+		setApplePosition: function() {
 			
-
+			this.wallForApple.wallNumber = Math.round(Math.random()*(map.walls.length-1));
+			this.wallForApple.xDraw = (Math.round(Math.random()*map.walls[this.wallForApple.wallNumber].l)+map.walls[this.wallForApple.wallNumber].xDraw);
+			this.wallForApple.y = this.walls[this.wallForApple.wallNumber].y-2;
+			this.wallForApple.x = this.walls[this.wallForApple.wallNumber].x;
+			this.wallForApple.yDraw = this.walls[this.wallForApple.wallNumber].yDraw-2;
+			
 		}
     
     }
@@ -224,7 +287,7 @@ var player = {
             var ctx = document.getElementById('ctx').getContext('2d');
 			
 			map.setStartImage();
-			map.generateWalls();
+			map.setApplePosition();
     
             setInterval(function() { map.update(ctx) }, 25);
 				    
