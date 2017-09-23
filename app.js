@@ -145,7 +145,7 @@ var player = {
 		keyPressed: {},
 		numberOfWalls: 10,
 		wallForApple: {},
-		maxTime: 5,
+		maxTime: 999999999999,
 		timerCounts: 0,
 		walls: [{
 				x: 50,
@@ -222,6 +222,8 @@ var player = {
 		setStartImage: function() {
 			
 			this.img.src = this.imageStand;
+			this.countImagesTimeLeft = 0;
+			this.countImagesTimeRight = 0;
 			
 		},
 		
@@ -279,7 +281,6 @@ var player = {
 					
 					this.lose = true;
 					this.draw(ctx);
-					
 					clearInterval(interval);
 					
 					
@@ -350,41 +351,50 @@ var player = {
 			if(this.img.src) {
 				this.fileName = this.img.src.replace(/^.*[\\\/]/, '')
 			}
-			if(this.keyPressed[37] == true) {
-				//lewo
-				if(this.fileName == this.imageStand) {
-					this.img.src = this.imageRunLeft1;
-				} else if(this.fileName == this.imageRunLeft1) {
-					map.countImagesTimeLeft++;
-					if(map.countImagesTimeLeft == 3) {
-						this.img.src = this.imageRunLeft2;
-					}
-				}else if(this.fileName == this.imageRunLeft2) {
-					map.countImagesTimeLeft--;
-					if(map.countImagesTimeLeft == 0) {
+			
+			if(!(this.keyPressed[37] == true && this.keyPressed[39] == true)) {
+				if(this.keyPressed[37] == true) {
+					//lewo
+					if(this.fileName == this.imageStand || this.fileName == this.imageRunRight1 || this.fileName == this.imageRunRight2) {
 						this.img.src = this.imageRunLeft1;
+					} else if(this.fileName == this.imageRunLeft1) {
+						map.countImagesTimeLeft++;
+						if(map.countImagesTimeLeft == 3) {
+							this.img.src = this.imageRunLeft2;
+						}
+					}else if(this.fileName == this.imageRunLeft2) {
+						map.countImagesTimeLeft--;
+						if(map.countImagesTimeLeft == 0) {
+							this.img.src = this.imageRunLeft1;
+						}
 					}
+					player.speed = -player.maxSpeed;
 				}
-				player.speed = -player.maxSpeed;
-			} else if(this.keyPressed[39] == true) {
-				//prawo
-				if(this.fileName == this.imageStand) {
-					this.img.src = this.imageRunRight1;
-				} else if(this.fileName == this.imageRunRight1) {
-					map.countImagesTimeRight++;
-					if(map.countImagesTimeRight == 3) {
-						this.img.src = this.imageRunRight2;
-					}
-				}else if(this.fileName == this.imageRunRight2) {
-					map.countImagesTimeRight--;
-					if(map.countImagesTimeRight == 0) {
+				if(this.keyPressed[39] == true) {
+					//prawo
+					if(this.fileName == this.imageStand || this.fileName == this.imageRunLeft1 || this.fileName == this.imageRunLeft2) {
 						this.img.src = this.imageRunRight1;
+					} else if(this.fileName == this.imageRunRight1) {
+						map.countImagesTimeRight++;
+						if(map.countImagesTimeRight == 3) {
+							this.img.src = this.imageRunRight2;
+						}
+					}else if(this.fileName == this.imageRunRight2) {
+						map.countImagesTimeRight--;
+						if(map.countImagesTimeRight == 0) {
+							this.img.src = this.imageRunRight1;
+						}
 					}
+					player.speed = player.maxSpeed;
 				}
-				player.speed = player.maxSpeed;
 			}
 			if(this.keyPressed[38] == true) {
 				//góra
+				if(this.keyPressed[39] != true && this.keyPressed[37] != true) {
+					this.img.src = this.imageStand;
+					this.countImagesTimeLeft = 0;
+					this.countImagesTimeRight = 0;
+				}
 				if(player.jumping == false) {
 					player.jumping = true;
 					player.isOnWall = false;
@@ -397,6 +407,12 @@ var player = {
 			}
 			
 			//console.log("up: " + this.keyPressed[38] + " down: "+ this.keyPressed[40] + " onWall: " + player.isOnWall);
+			//console.log(this.keyPressed[37] + " " + this.keyPressed[39] + " " + player.gravity);
+			if(this.keyPressed[37] != true && this.keyPressed[39] != true && player.gravity == -player.maxGravity) {
+				
+				this.img.src = this.imageStand;
+				
+			}
 		},
 		
 		setApplePosition: function() {
