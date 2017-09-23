@@ -236,6 +236,16 @@ var player = {
 			this.timer = this.maxTime;
 			
 		},
+		
+		setStartPosition: function() {
+			
+			player.x = 0;
+			player.y = 480;
+			player.speed = 0;
+			player.gravity = 0;
+			player.pkt = 0;
+			
+		},
 				
 		update: function(ctx, interval) {
 			
@@ -249,7 +259,7 @@ var player = {
 			
 			player.checkApple();
 			
-			this.setTimer(interval);
+			this.setTimer(ctx, interval);
 				
             player.checkJump();
 				
@@ -257,7 +267,7 @@ var player = {
 			
 		},
 		
-		setTimer: function(interval) {
+		setTimer: function(ctx, interval) {
 			
 			this.timerCounts++;
 			
@@ -268,7 +278,8 @@ var player = {
 				if(map.timer == 0) {
 					
 					this.lose = true;
-					this.draw();
+					this.draw(ctx);
+					
 					clearInterval(interval);
 					
 					
@@ -287,8 +298,10 @@ var player = {
 				ctx.fillRect(0, 0, this.width, this.height+20);
 				ctx.fillStyle="#FFFFFF";
 				ctx.font = "30px Verdana";
-				ctx.fillText("GAME OVER", 150, 250);
-				ctx.fillText("YOUR POINTS: " + player.pkt, 120, 300);
+				ctx.fillText("GAME OVER", 150, 150);
+				ctx.fillText("YOUR POINTS: " + player.pkt, 120, 190);
+				ctx.fillText("PLAY AGAIN", 150, 370);
+				ctx.fillText("PRESS ENTER", 140, 410);
 				
 			} else {
 			
@@ -402,16 +415,36 @@ var player = {
         
             var ctx = document.getElementById('ctx').getContext('2d');
 			
-			map.setStartImage();
-			map.setAppleImage();
-			map.setApplePosition();
-			map.setStartTime();
+			start();
+			
+			function start() {
+			
+				map.setStartImage();
+				map.setAppleImage();
+				map.setApplePosition();
+				map.setStartTime();
+				map.setStartPosition();
     
-            var interval = setInterval(function() { map.update(ctx, interval) }, 30);
+				var interval = setInterval(function() { map.update(ctx, interval) }, 30);
+				
+			}
 				    
             document.addEventListener("keydown", function(e) {
-                
-				map.keyPressed[e.keyCode] = true;
+				
+				if(e.keyCode == 13) {
+				
+					if(map.lose == true) {
+					
+						map.lose = false;
+						start();
+					
+					}
+					
+				} else {
+					                
+					map.keyPressed[e.keyCode] = true;					
+					
+				}
             
             });
 			
