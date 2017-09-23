@@ -145,7 +145,7 @@ var player = {
 		keyPressed: {},
 		numberOfWalls: 10,
 		wallForApple: {},
-		maxTime: 999999999999,
+		maxTime: 5,
 		timerCounts: 0,
 		walls: [{
 				x: 50,
