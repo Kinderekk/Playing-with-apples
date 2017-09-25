@@ -1,6 +1,5 @@
-var player = {
+﻿var player = {
     
-        name: 'M',
         x: 0,
         y: 480,
         speed: 0,
@@ -9,6 +8,8 @@ var player = {
         maxJump: 30,
 		maxSpeed: 3,
 		maxGravity: 3,
+		everyPointsApple: 5,
+		lastBarrierOfApple: 0,
 		pkt: 0,
 		isOnWall: false,
 		nextStepX: function() {
@@ -98,37 +99,69 @@ var player = {
 		
 		checkApple: function() {
 			
-			for(var i=map.wallForApple.xDraw+2; i<map.wallForApple.xDraw+6; i++) {
+			//console.log(map.apples.length);
+			
+			for(var j=0; j<map.apples.length; j++) {
 				
-				if(player.y+19 == map.wallForApple.yDraw+1) {
+				for(var i=map.apples[j].xDraw+2; i<map.apples[j].xDraw+6; i++) {
+				
+					if(player.y+19 == map.apples[j].yDraw+1) {
 					
-					if(i == this.x+2 || i == this.x+6 || i == this.x+10 || i == this.x+14) {
+						if(i == this.x+2 || i == this.x+6 || i == this.x+10 || i == this.x+14) {
 						
-						player.pkt++;
-						map.setApplePosition();
-						map.timer = map.maxTime;
-						this.timerCounts = 0;
+							this.applePicked(j);
+							if(j>=map.apples.length) {
+								j=map.apples.length-1;
+							}
 						
+						}
+					
 					}
-					
-				}
 				
+				}
+			
+				for(var i=map.apples[j].yDraw-8; i<map.apples[j].yDraw; i++) {
+					
+					if(this.x+2 == map.apples[j].xDraw+4 || this.x+6 == map.apples[j].xDraw+4 || this.x+10 == map.apples[j].xDraw+4 || this.x+14 == map.apples[j].xDraw+4) {
+						
+						if(i == player.y+19) {
+						
+							this.applePicked(j);
+							if(j>=map.apples.length) {
+								j=map.apples.length-1;
+							}
+							
+						}
+					
+					}
+				
+				}
+					
 			}
 			
-			for(var i=map.wallForApple.yDraw-8; i<map.wallForApple.yDraw+2; i++) {
-				
-				if(this.x+2 == map.wallForApple.xDraw+4 || this.x+6 == map.wallForApple.xDraw+4 || this.x+10 == map.wallForApple.xDraw+4 || this.x+14 == map.wallForApple.xDraw+4) {
-						
-					if(i == player.y+19) {
-						
-						player.pkt++;
-						map.setApplePosition();
-						map.timer = map.maxTime;
-						this.timerCounts = 0;
-							
-					}
+		},
+		
+		applePicked: function(j) {
+			map.apples.splice(j,1);
+			if(map.apples.length == 0) {
+			
+				player.pkt++;
 					
+				if(player.pkt == (player.lastBarrierOfApple+player.everyPointsApple)) {
+								
+					if(map.numberOfApples < map.maxNumberOfApples) {
+									
+						map.numberOfApples++;
+						player.lastBarrierOfApple = player.pkt;
+						map.actualTime += map.levelUpTime;
+									
+					}
+								
 				}
+				
+				map.setApplePosition();
+				map.timer = map.actualTime;
+				map.timerCounts = 0;
 				
 			}
 			
@@ -144,9 +177,14 @@ var player = {
         width: 500,
 		keyPressed: {},
 		numberOfWalls: 10,
-		wallForApple: {},
-		maxTime: 5,
+		startTime: 6,
+		levelUpTime: 1,
 		timerCounts: 0,
+		starting: true,
+		numberOfApples: 1,
+		maxNumberOfApples: 5,
+		apples: [],
+		wallsForApple: {},
 		walls: [{
 				x: 50,
 				y: 470,
@@ -235,7 +273,7 @@ var player = {
 		
 		setStartTime: function() {
 			
-			this.timer = this.maxTime;
+			this.timer = this.actualTime;
 			
 		},
 		
@@ -246,6 +284,9 @@ var player = {
 			player.speed = 0;
 			player.gravity = 0;
 			player.pkt = 0;
+			this.numberOfApples = 1;
+			player.lastBarrierOfApple = 0;
+			this.actualTime = this.startTime;
 			
 		},
 				
@@ -275,9 +316,9 @@ var player = {
 			
 			if(this.timerCounts == 30) {
 			
-				map.timer--;
+				this.timer--;
 
-				if(map.timer == 0) {
+				if(this.timer == 0) {
 					
 					this.lose = true;
 					this.draw(ctx);
@@ -324,16 +365,19 @@ var player = {
 				ctx.fillText("Time: " + map.timer, 300, 40);
 			
 				//GAME OVER
-			
-				ctx.drawImage(this.imgApple, this.wallForApple.xDraw, this.wallForApple.yDraw-8,10,10);
-				//tx.fillRect(player.x+2, player.y+19, 1, 1); // lewa stopa
+				for(var i=0; i<this.apples.length; i++) {
+					
+					ctx.drawImage(this.imgApple, this.apples[i].xDraw, this.apples[i].yDraw-8,10,10);
+					
+				}
+				//ctx.fillRect(player.x+2, player.y+19, 1, 1); // lewa stopa
 				//ctx.fillRect(player.x+6, player.y+19, 1, 1); // środek1
 				//ctx.fillRect(player.x+10, player.y+19, 1, 1); // środek1
 				//ctx.fillRect(player.x+14, player.y+19, 1, 1); // prawa stopa
 				//ctx.fillRect(player.x+8, player.y, 1, 1); // głowa
-				//ctx.fillRect(this.wallForApple.xDraw+4, this.wallForApple.yDraw-8, 1, 1); //czubek jabłka
-				//ctx.fillRect(this.wallForApple.xDraw+2, this.wallForApple.yDraw+1, 1, 1); //lewa jabłka
-				//ctx.fillRect(this.wallForApple.xDraw+8, this.wallForApple.yDraw+1, 1, 1); //lewa jabłka
+				//ctx.fillRect(this.apples[i].xDraw+4, this.apples[i].yDraw-8, 1, 1); //czubek jabłka
+				//ctx.fillRect(this.apples[i].xDraw+2, this.apples[i].yDraw+1, 1, 1); //lewa jabłka
+				//ctx.fillRect(this.wapples[i].xDraw+8, this.apples[i].yDraw+1, 1, 1); //lewa jabłka
 			
 			}
 			
@@ -417,12 +461,34 @@ var player = {
 		
 		setApplePosition: function() {
 			
-			this.wallForApple.wallNumber = Math.round(Math.random()*(map.walls.length-1));
-			this.wallForApple.xDraw = (Math.round(Math.random()*map.walls[this.wallForApple.wallNumber].l)+map.walls[this.wallForApple.wallNumber].xDraw-3);
-			this.wallForApple.y = this.walls[this.wallForApple.wallNumber].y-2;
-			this.wallForApple.x = this.walls[this.wallForApple.wallNumber].x;
-			this.wallForApple.yDraw = this.walls[this.wallForApple.wallNumber].yDraw-2;
+			this.wallsForApple = [];
+			this.apples = [];
 			
+			for(var i=0; i<this.numberOfApples; i++) {
+				
+				this.apples[i] = new Object();
+				this.apples[i].wallNumber = Math.round(Math.random()*(map.walls.length-1));
+				
+				for(var j=0; j<this.wallsForApple.length; j++) {
+					
+					if(this.apples[i].wallNumber == this.wallsForApple[j]) {
+						
+						this.apples[i].wallNumber = Math.round(Math.random()*(map.walls.length-1));
+						j = -1;
+						
+					}
+					
+				}
+				
+				this.wallsForApple[j] = this.apples[i].wallNumber;
+				
+				this.apples[i].xDraw = (Math.round(Math.random()*map.walls[this.apples[i].wallNumber].l)+map.walls[this.apples[i].wallNumber].xDraw-3);
+				this.apples[i].y = this.walls[this.apples[i].wallNumber].y-2;
+				this.apples[i].x = this.walls[this.apples[i].wallNumber].x;
+				this.apples[i].yDraw = this.walls[this.apples[i].wallNumber].yDraw-2;
+				
+			}
+				
 		}
     
     }
@@ -431,15 +497,25 @@ var player = {
         
             var ctx = document.getElementById('ctx').getContext('2d');
 			
-			start();
+			drawStart();
+			
+			function drawStart() {
+			
+				ctx.fillStyle="#000000";
+				ctx.fillRect(0, 0, map.width, map.height+20);
+				ctx.fillStyle="#FFFFFF";
+				ctx.font = "30px Verdana";
+				ctx.fillText("PRESS ENTER TO START", 65, 275);
+				
+			}
 			
 			function start() {
 			
 				map.setStartImage();
 				map.setAppleImage();
+				map.setStartPosition();
 				map.setApplePosition();
 				map.setStartTime();
-				map.setStartPosition();
     
 				var interval = setInterval(function() { map.update(ctx, interval) }, 30);
 				
@@ -454,6 +530,12 @@ var player = {
 						map.lose = false;
 						start();
 					
+					}
+					if(map.starting == true) {
+						
+						start();
+						map.starting = false;
+						
 					}
 					
 				} else {
